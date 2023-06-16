@@ -23,6 +23,7 @@ import subprocess
 import os.path
 import sys
 import shutil
+import tempfile
 
 def compress(input_file_path, output_file_path, power=0):
     """Function to compress PDF via Ghostscript command line interface"""
@@ -87,13 +88,14 @@ def main():
         args.compress = 2
     # In case no output file is specified, store in temp file
     if not args.out:
-        args.out = 'temp.pdf'
+        args.out = tempfile.mkstemp(suffix = '.pdf')[1]
+        args.noout = 'temp.pdf'
 
     # Run
     compress(args.input, args.out, power=args.compress)
 
     # In case no output file is specified, erase original file
-    if args.out == 'temp.pdf':
+    if args.noout == 'temp.pdf':
         if args.backup:
             shutil.copyfile(args.input, args.input.replace(".pdf", "_BACKUP.pdf"))
         shutil.copyfile(args.out, args.input)
@@ -101,7 +103,7 @@ def main():
 
     # In case we want to open the file after compression
     if args.open:
-        if args.out == 'temp.pdf' and args.backup:
+        if args.noout == 'temp.pdf' and args.backup:
             subprocess.call(['open', args.input])
         else:
             subprocess.call(['open', args.out])
